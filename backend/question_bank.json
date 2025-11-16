@@ -1,0 +1,17 @@
+{
+  "General Aptitude": [
+    "Tell me about a time you solved a difficult problem.",
+    "Why do you want this position?",
+    "Describe your strengths and weaknesses."
+  ],
+  "Computer Science": [
+    "Explain the difference between a process and a thread.",
+    "What is a RESTful API?",
+    "Describe how a hash table works."
+  ],
+  "Math": [
+    "Explain permutations vs combinations.",
+    "Differentiate x^2.",
+    "Integrate x^2 from 0 to 1."
+  ]
+}

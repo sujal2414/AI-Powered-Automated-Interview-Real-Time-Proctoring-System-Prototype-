@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 15px;
+            width: 380px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 4px rgba(79, 70, 229, 0.3);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: #4f46e5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-left: 4px solid #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Register</h1>
+
+        {% if error %}
+            <div class="error-box">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            <label>Name</label>
+            <input name="name" placeholder="Enter your full name" required>
+
+            <label>Email</label>
+            <input name="email" type="email" placeholder="Enter your email" required>
+
+            <label>Subject</label>
+            <select name="subject" required>
+                <option value="" disabled selected>Select subject</option>
+                {% for s in subjects %}
+                    <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Start Interview</button>
+        </form>
+    </div>
+
+</body>
+</html>

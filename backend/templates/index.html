@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Interview & Proctoring System</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+<div> <a href="/register">
+    <button>Start Interview (Register)</button>
+</a>
+</div>
+<div class="topbar">AI Interview — Real-Time Proctoring</div>
+
+<div class="wrap">
+  <div class="card">
+
+    <!-- Controls -->
+    <div class="controls">
+      <input id="name" type="text" placeholder="Candidate name (e.g. John Doe)"/>
+      <button id="startBtn">Start Interview</button>
+      <button id="stopBtn" disabled>Stop & Submit</button>
+
+      <div style="margin-left:auto;">
+        <span id="status" style="font-size:14px;font-weight:600">Ready</span>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Webcam -->
+      <div>
+        <div class="video-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+        </div>
+        <div class="notice">Please allow camera + microphone access.</div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="side">
+
+        <!-- Question -->
+        <div class="section-title">Current Question</div>
+        <div id="question" class="question-box"></div>
+
+        <!-- Progress Bar -->
+        <div class="progress"><i id="progressBar"></i></div>
+
+        <!-- Transcript -->
+        <div class="section-title" style="margin-top:10px;">Live Transcript</div>
+        <div id="transcript"></div>
+
+        <!-- Proctor Flags -->
+        <div class="section-title" style="margin-top:10px;">Proctor Flags</div>
+        <div id="flags" style="min-height:40px;"></div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+<script src="/static/js/app.js"></script>
+
+</body>
+</html>

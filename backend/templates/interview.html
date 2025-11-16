@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Interview — Live</title>
+
+<style>
+  :root{
+    --bg:#eef6ff; --card:#fff; --primary:#3b82f6; --accent:#10b981;
+    --danger:#ef4444; --muted:#6b7280;
+  }
+  body{margin:0;font-family:Inter,Segoe UI,Arial;background:var(--bg);color:#111}
+  .page{max-width:1100px;margin:30px auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:space-between}
+  header h1{margin:0;font-size:20px}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:20px;margin-top:18px}
+  .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+  .question-area{display:flex;flex-direction:column;align-items:center;gap:14px;min-height:260px}
+  #questionText{font-size:22px;font-weight:700;text-align:center;color:#0f172a;min-height:84px}
+  .controls{display:flex;gap:10px;align-items:center}
+  button{cursor:pointer;border:0;padding:10px 14px;border-radius:10px;font-weight:600}
+  .btn-primary{background:var(--primary);color:white}
+  .btn-ghost{background:transparent;border:1px solid #e6eefc;color:var(--primary)}
+  .btn-danger{background:var(--danger);color:white}
+  .btn-ok{background:var(--accent);color:white}
+  .answer-box{width:100%;min-height:120px;border-radius:10px;padding:12px;border:1px solid #e6eefc;background:#fbfcff;font-size:16px}
+  .status-row{display:flex;justify-content:space-between;width:100%;gap:12px;align-items:center;margin-top:8px}
+  .status{color:var(--muted);font-size:14px}
+  .camera-card video{width:100%;height:220px;object-fit:cover;border-radius:8px;background:#000}
+  .right-col{display:flex;flex-direction:column;gap:12px}
+  .small{font-size:13px;color:var(--muted)}
+  .hint{font-size:13px;color:#475569;margin-top:8px}
+  .row{display:flex;gap:8px}
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.camera-card video{height:180px}}
+</style>
+
+</head>
+<body>
+
+<div class="page">
+
+<header>
+  <h1>AI Interview — Candidate: <span id="candName">{{ name }}</span> ({{ subject }})</h1>
+  <div class="small">Session: <strong id="sessId">{{ session_id }}</strong></div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="card question-area">
+    
+    <div id="questionText">Interview will start in <span id="count">5</span> seconds...</div>
+
+    <div class="controls">
+      <button id="repeatBtn" class="btn-ghost">🔁 Repeat Question</button>
+      <button id="playBtn" class="btn-ghost">🔊 Play</button>
+      <div style="flex:1"></div>
+      <button id="startBtn" class="btn-primary">🎤 Start Recording</button>
+      <button id="stopBtn" class="btn-danger" disabled>⛔ Stop</button>
+    </div>
+
+    <div class="status-row">
+      <div>
+        <div class="small">Live transcript (spoken answer):</div>
+        <div id="answerText" class="answer-box">—</div>
+        <div class="hint">Speak clearly, avoid noise. Works best on Chrome/Edge.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="retryBtn" class="btn-ghost">↺ Retry Answer</button>
+      <button id="submitBtn" class="btn-ok" style="margin-left:auto">✅ Submit Interview</button>
+    </div>
+
+    <div class="status small" id="info">Status: waiting…</div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-col">
+
+    <div class="card camera-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">Live Camera</div>
+        <div class="small" id="camStatus">camera: off</div>
+      </div>
+      <video id="camera" autoplay playsinline muted></video>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700">Activity Log</div>
+      <div id="log" class="small" style="margin-top:8px;max-height:160px;overflow:auto">—</div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>After final question → press Submit Interview</footer>
+
+</div>
+
+<script>
+
+/* CONFIG */
+const SESSION_ID = "{{ session_id }}";
+const AUTO_SPEAK = true;
+
+/* STATE */
+let currentIndex = 0;
+let currentQuestion = "";
+let recognition = null;
+let listening = false;
+let finalTranscript = "";
+let interimTranscript = "";
+let manuallyStopped = false;
+
+/* ELEMENTS */
+const questionText = document.getElementById("questionText");
+const answerBox = document.getElementById("answerText");
+const info = document.getElementById("info");
+const camEl = document.getElementById("camera");
+const logEl = document.getElementById("log");
+
+/* HELPERS */
+function log(msg){
+  const t = new Date().toLocaleTimeString();
+  logEl.innerHTML = `<div>[${t}] ${msg}</div>` + logEl.innerHTML;
+}
+function setInfo(t){ info.innerText = "Status: " + t; }
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang="en-US";
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+
+/* LOAD QUESTIONS */
+async function loadQuestion(index=0){
+  setInfo("loading question...");
+  const r = await fetch("/get_question",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({session_id:SESSION_ID,index})
+  });
+  const j = await r.json();
+
+  if(j.done){
+    questionText.innerText="All questions completed. Submit interview.";
+    return;
+  }
+
+  currentQuestion = j.question;
+  questionText.innerText = currentQuestion;
+  if(AUTO_SPEAK) speak(currentQuestion);
+  setInfo("question ready");
+}
+
+/* SPEECH RECOGNITION */
+function initSR(){
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new Rec();
+  recognition.lang = "en-US";
+  recognition.interimResults = true;
+  recognition.continuous = true;
+
+  recognition.onstart = () => {
+    listening = true;
+    setInfo("Recording… 🎤");
+  };
+
+  recognition.onresult = (e)=>{
+    interimTranscript="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const res = e.results[i];
+      const txt = res[0].transcript;
+      if(res.isFinal) finalTranscript += " " + txt;
+      else interimTranscript += txt;
+    }
+    answerBox.innerText = (finalTranscript + " " + interimTranscript).trim();
+  };
+
+  recognition.onend = () => {
+    listening = false;
+    if(!manuallyStopped){
+      try{ recognition.start(); }catch(e){}
+    }
+  };
+}
+
+/* START RECORDING */
+document.getElementById("startBtn").onclick = ()=>{
+
+  if(!recognition) initSR();
+
+  finalTranscript=""; 
+  interimTranscript="";
+  answerBox.innerText="";
+  manuallyStopped = false;
+
+  recognition.start();
+
+  document.getElementById("stopBtn").disabled = false;
+  document.getElementById("startBtn").disabled = true;
+};
+
+/* STOP RECORDING */
+document.getElementById("stopBtn").onclick = async ()=>{
+
+  manuallyStopped = true;
+  if(recognition) recognition.stop();
+
+  setInfo("Answer saved. Loading next question… ⏳");
+
+  const ans = answerBox.innerText.trim();
+  if(!ans){
+    setInfo("No answer detected. Please retry.");
+    return;
+  }
+
+  await fetch("/submit_answer",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({session_id:SESSION_ID,question:currentQuestion,answer:ans})
+  });
+
+  currentIndex++;
+  finalTranscript = "";
+  interimTranscript = "";
+  answerBox.innerText = "";
+
+  await loadQuestion(currentIndex);
+
+  document.getElementById("stopBtn").disabled = true;
+  document.getElementById("startBtn").disabled = false;
+
+  setInfo("Ready to record.");
+};
+
+/* REPEAT */
+document.getElementById("repeatBtn").onclick = ()=>{
+  if(recognition){
+    manuallyStopped = true;
+    recognition.stop();
+  }
+  finalTranscript=""; interimTranscript="";
+  answerBox.innerText="";
+  speak(currentQuestion);
+};
+
+/* PLAY */
+document.getElementById("playBtn").onclick = ()=> speak(currentQuestion);
+
+/* RETRY */
+document.getElementById("retryBtn").onclick = ()=>{
+  if(recognition){
+    manuallyStopped=true;
+    recognition.stop();
+  }
+  finalTranscript=""; interimTranscript="";
+  answerBox.innerText="";
+  setInfo("Retry your answer.");
+};
+
+/* SUBMIT */
+document.getElementById("submitBtn").onclick = ()=>{
+  alert("🎉 Interview Completed Successfully!");
+  window.location.href="/dashboard";
+};
+
+/* CAMERA */
+async function initCamera(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({video:true});
+    camEl.srcObject = stream;
+    document.getElementById("camStatus").innerText="camera: on";
+  }catch(e){
+    log("Camera error: "+e);
+  }
+}
+
+/* COUNTDOWN */
+async function startCountdown(){
+  let t = 5;
+  const counter = document.getElementById("count");
+  const timer = setInterval(()=>{
+    counter.innerText = t;
+    if(t === 0){
+      clearInterval(timer);
+      loadQuestion(0);
+    }
+    t--;
+  },1000);
+}
+
+/* INIT */
+(async()=>{
+  initCamera();
+  startCountdown();
+})();
+</script>
+
+<script src="/static/js/interview.js"></script>
+
+</body>
+</html>

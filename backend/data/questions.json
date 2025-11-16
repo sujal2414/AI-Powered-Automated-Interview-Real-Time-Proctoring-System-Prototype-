@@ -1,0 +1,24 @@
+
+{
+  "python": [
+    "What is a Python decorator?",
+    "Explain list comprehension with an example.",
+    "What is the difference between a list and a tuple?",
+    "What is the GIL in Python?",
+    "Explain OOP concepts in Python."
+  ],
+  "java": [
+    "What is JVM and how does it work?",
+    "Explain inheritance in Java.",
+    "What is the difference between JDK and JRE?",
+    "What are interfaces?",
+    "Explain multithreading in Java."
+  ],
+  "web": [
+    "What is the difference between HTTP and HTTPS?",
+    "Explain event bubbling in JavaScript.",
+    "What is a REST API?",
+    "Explain CSS Flexbox.",
+    "What is localStorage vs sessionStorage?"
+  ]
+}

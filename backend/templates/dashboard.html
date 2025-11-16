@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard — Interviews</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Interview Dashboard</h1>
+
+    <h2>Sessions</h2>
+    <table>
+      <tr><th>Session ID</th><th>Name</th><th>Email</th><th>Subject</th><th>Started at (UTC)</th></tr>
+      {% for s in sessions %}
+        <tr>
+          <td>{{ s[0] }}</td><td>{{ s[1] }}</td><td>{{ s[2] }}</td><td>{{ s[3] }}</td><td>{{ s[4] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Recent Answers</h2>
+    <table>
+      <tr><th>Session</th><th>Question</th><th>Answer</th><th>Timestamp (UTC)</th></tr>
+      {% for a in answers %}
+        <tr><td>{{ a[0] }}</td><td>{{ a[1] }}</td><td>{{ a[2] }}</td><td>{{ a[3] }}</td></tr>
+      {% endfor %}
+    </table>
+
+    <p><a href="/">Back to register</a></p>
+  </div>
+</body>
+</html>
